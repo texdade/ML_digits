@@ -231,13 +231,13 @@ for rate in learning_rates:
 network = CharDeepModel()
 
 network_loss = tf.keras.losses.CategoricalCrossentropy()
-if(optimizer==0):
+if(best_optimizer==0):
   print(("\nModel training with optimizer Adam at learning rate = {}").format(best_learning_rate))
   network_optimizer = tf.keras.optimizers.Adam(learning_rate=best_learning_rate)
-elif(optimizer==1):
+elif(best_optimizer==1):
   print(("\nModel training with optimizer Adamax at learning rate = {}").format(best_learning_rate))
   network_optimizer = tf.keras.optimizers.Adamax(learning_rate=best_learning_rate)
-elif(optimizer==2):
+elif(best_optimizer==2):
   print(("\nModel training with optimizer Nadam at learning rate = {}").format(best_learning_rate))
   network_optimizer = tf.keras.optimizers.Nadam(learning_rate=best_learning_rate)
 
