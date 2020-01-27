@@ -47,7 +47,7 @@ class CharDeepModel(Model):
     self.pool1 = MaxPool2D([2,2])                
     self.conv2 = CharConvolutional(16, 32, 4) 
     self.pool2 = MaxPool2D([2,2])                
-    self.conv3 = CharConvolutional(32, 64, 4)
+    self.conv3 = CharConvolutional(32, 64, 2)
     self.pool3 = MaxPool2D([2,2])                
     self.flatten = Flatten()                     
     self.fc1 = CharFullyConnected(2*1*64, 256)
@@ -133,7 +133,7 @@ def train_loop(epochs, train_ds, model, loss_fn, optimizer, validation):
     #if performance are really poor cut the validation with these settings
     if(train_accuracy_metric.result()<0.2 and validation):
       print("Poor performances - Validation aborted")
-      return
+      return -1
       
 
 def test_step(images, labels, model, loss_fn, validation):
@@ -218,14 +218,13 @@ for rate in learning_rates:
       print(("\nModel validating with optimizer Nadam at learning rate = {}").format(rate))
       network_optimizer = tf.keras.optimizers.Nadam(learning_rate=rate)
     
-    train_loop(EPOCHS, train_ds_validation, network, network_loss, network_optimizer, True)
-
-    acc=test_loop(test_ds_validation, network, network_loss, True)
+    completed = train_loop(EPOCHS, train_ds_validation, network, network_loss, network_optimizer, True)
+    if(completed != -1):
+      acc=test_loop(test_ds_validation, network, network_loss, True)
     if(acc>best_acc):
       best_acc=acc
       best_learning_rate=rate
       best_optimizer=optimizer
-
 
 # Create an instance of the model
 network = CharDeepModel()
@@ -247,7 +246,6 @@ train_loop(EPOCHS, train_ds, network, network_loss, network_optimizer, False)
 
 #TESTING OF THE FINAL NETWORK
 test_loop(test_ds, network, network_loss, False)
-
 
 
 
