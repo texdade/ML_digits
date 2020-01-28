@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from numpy import argmax
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Softmax, Flatten, MaxPool2D, Dropout
+from sklearn.model_selection import train_test_split
 from datetime import datetime
 
 tf.random.set_seed(0)
@@ -200,8 +201,22 @@ best_learning_rate=1e-1
 best_optimizer = 0
 best_acc=0.0
 
-train_ds_validation = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(10000).batch(100)
-test_ds_validation = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(50)
+x_train_v, x_test_v, y_train_v, y_test_v = train_test_split(data_train, target_train, test_size=0.30, random_state=42)
+
+x_train_v = x_train_v.reshape(x_train_v.shape[0], 16, 8)
+x_test_v = x_test_v.reshape(x_test_v.shape[0], 16, 8)
+
+x_train_v = tf.cast(x_train_v, tf.float32) / 255.0
+x_test_v = tf.cast(x_test_v, tf.float32) / 255.0
+
+x_train_v = tf.convert_to_tensor(x_train_v[..., tf.newaxis])
+x_test_v = tf.convert_to_tensor(x_test_v[..., tf.newaxis])
+
+y_train_v = tf.one_hot(char_to_int(y_train_v[:,0]), 26)
+y_test_v = tf.one_hot(char_to_int(y_test_v[:,0]), 26)
+
+train_ds_validation = tf.data.Dataset.from_tensor_slices((x_train_v, y_train_v)).shuffle(10000).batch(100)
+test_ds_validation = tf.data.Dataset.from_tensor_slices((x_test_v, y_test_v)).batch(50)
 
 for rate in learning_rates:
   for optimizer in optimizers:
@@ -221,7 +236,7 @@ for rate in learning_rates:
     completed = train_loop(EPOCHS, train_ds_validation, network, network_loss, network_optimizer, True)
     if(completed != -1):
       acc=test_loop(test_ds_validation, network, network_loss, True)
-    if(acc>best_acc):
+    if(completed != -1 and acc>best_acc):
       best_acc=acc
       best_learning_rate=rate
       best_optimizer=optimizer
@@ -246,6 +261,7 @@ train_loop(EPOCHS, train_ds, network, network_loss, network_optimizer, False)
 
 #TESTING OF THE FINAL NETWORK
 test_loop(test_ds, network, network_loss, False)
+
 
 
 
